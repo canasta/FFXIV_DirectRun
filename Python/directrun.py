@@ -1,11 +1,12 @@
-import wmi
+from wmi import WMI
 from PyQt5.QtWidgets import QApplication
 from gui_form import GUIForm
-from sys import exit
+from sys import argv, exit, executable
+from ctypes import windll
 
 
 def get_client_args() -> str:
-    wmi_obj = wmi.WMI()
+    wmi_obj = WMI()
     ffproc = wmi_obj.Win32_Process(Name='ffxiv_dx11.exe')
 
     command = ffproc[0].CommandLine
@@ -32,9 +33,16 @@ def load_command() -> str:
 def run_ffxiv():
     command = load_command()
     if len(command) > 0:
-        process = wmi.WMI().Win32_Process
+        process = WMI().Win32_Process
         process.Create(CommandLine=command)
         exit()
+
+
+def is_admin():
+    try:
+        return windll.shell32.IsUserAnAdmin()
+    except:
+        return False
 
 
 def main():
@@ -49,4 +57,7 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    if is_admin():
+        main()
+    else:
+        windll.shell32.ShellExecuteW(None, 'runas', executable, " ".join(argv), None, 1)
