@@ -1,6 +1,7 @@
 import wmi
 from PyQt5.QtWidgets import QApplication
 from gui_form import GUIForm
+from sys import exit
 
 
 def get_client_args() -> str:
@@ -14,21 +15,26 @@ def get_client_args() -> str:
 
 def save_command():
     command = get_client_args()
-    with open('./command.directrun') as f:
+    with open('./command.directrun', 'w') as f:
         f.write(command)
 
 
 def load_command() -> str:
-    with open('./command.directrun') as f:
-        command = f.read()
+    try:
+        with open('./command.directrun', 'r') as f:
+            command = f.read()
+    except IOError:
+        command = ''
 
     return command
 
 
 def run_ffxiv():
     command = load_command()
-    process = wmi.WMI().Win32_Process
-    process.Create(CommandLine=command)
+    if len(command) > 0:
+        process = wmi.WMI().Win32_Process
+        process.Create(CommandLine=command)
+        exit()
 
 
 def main():
